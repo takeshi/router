@@ -361,7 +361,7 @@ function initLocalsStepFactory() {
     return instruction.router.traverseInstruction(instruction, function(instruction: Instruction) {
       return instruction.locals = {
         $router: instruction.router,
-        $routeParams: (instruction.params || {})
+        $routeParams: (instruction.params || <recognizer.Params>{})
       };
     });
   }
