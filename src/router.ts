@@ -4,6 +4,9 @@
  * @where shared
  * @description
  * The router is responsible for mapping URLs to components.
+ *
+ * You can see the state of the router by inspecting the read-only field `router.navigating`.
+ * This may be useful for showing a spinner, for instance.
  */
 class Router implements IRouter{
   name: string;

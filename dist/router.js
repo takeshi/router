@@ -9,6 +9,9 @@ var __extends = this.__extends || function (d, b) {
  * @where shared
  * @description
  * The router is responsible for mapping URLs to components.
+ *
+ * You can see the state of the router by inspecting the read-only field `router.navigating`.
+ * This may be useful for showing a spinner, for instance.
  */
 var Router = (function () {
     function Router(grammar, pipeline, parent, name) {

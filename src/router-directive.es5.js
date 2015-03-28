@@ -177,7 +177,7 @@ function ngViewportDirective($animate, $injector, $q, $router) {
           return;
         }
 
-        newScope = scope.$new();
+        instruction.locals.$scope = newScope = scope.$new();
         myCtrl.$$router = instruction.router;
         myCtrl.$$template = instruction.template;
         var componentName = instruction.component;
@@ -326,7 +326,7 @@ function anchorLinkDirective($router) {
       if (element[0].nodeName.toLowerCase() !== 'a') return;
 
       // SVGAElement does not use the href attribute, but rather the 'xlinkHref' attribute.
-      var hrefAttrName = toString.call(element.prop('href')) === '[object SVGAnimatedString]' ?
+      var hrefAttrName = Object.prototype.toString.call(element.prop('href')) === '[object SVGAnimatedString]' ?
                      'xlink:href' : 'href';
 
       element.on('click', function(event) {

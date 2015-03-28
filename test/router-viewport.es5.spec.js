@@ -244,6 +244,25 @@ describe('ngViewport', function () {
   }));
 
 
+  it('should inject $scope into the activate hook of a controller', function () {
+    var spy = jasmine.createSpy('activate');
+    spy.$inject = ['$scope'];
+    registerComponent('user', '', {
+      activate: spy
+    });
+
+    $router.config([
+      { path: '/user/:name', component: 'user' }
+    ]);
+    compile('<div ng-viewport></div>');
+
+    $router.navigate('/user/brian');
+    $rootScope.$digest();
+
+    expect(spy.calls.first().args[0].$root).toEqual($rootScope);
+  });
+
+
   it('should run the deactivate hook of controllers', function () {
     var spy = jasmine.createSpy('deactivate');
     registerComponent('deactivate', '', {
@@ -541,6 +560,21 @@ describe('ngViewport', function () {
 
     $rootScope.$digest();
     expect(elt.text()).toBe('link | two');
+  });
+
+  // See https://github.com/angular/router/issues/206
+  it('should not navigate a link without an href', function () {
+    $router.config([
+      { path: '/', component: 'one' },
+      { path: '/two', component: 'two' },
+    ]);
+    expect(function() {
+      compile('<a>link</a>');
+      $rootScope.$digest();
+      expect(elt.text()).toBe('link');
+      elt.find('a')[0].click();
+      $rootScope.$digest();
+    }).not.toThrow();
   });
 
 
