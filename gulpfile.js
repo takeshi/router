@@ -25,9 +25,8 @@ gulp.task('build', ['transpile', 'angularify']);
 gulp.task('transpile', function() {
   return gulp.src(PATH.TS)
       .pipe(typescript({
-        module:"amd",
         noImplicitAny:true,
-        declarationFiles:true
+        // declarationFiles:true
       }))
       // .pipe(rename({extname: '.js'}))
       .pipe(gulp.dest(BUILD_DIR));
@@ -36,12 +35,17 @@ gulp.task('transpile', function() {
 gulp.task('angularify', ['transpile'], function() {
   var directive = gulp.src('./src/*.es5.js');
 
-  var generated = gulp.src(['./src/router.ats', './src/grammar.ats'])
-      .pipe(modulate({
-        moduleName: 'ngNewRouter.generated'
-      }))
+  // var generated = gulp.src(['./src/router.ats', './src/grammar.ats'])
+  //     .pipe(modulate({
+  //       moduleName: 'ngNewRouter.generated'
+  //     }))
 
-  return gulpMerge(directive, generated)
+  var generated = gulp.src(PATH.TS)
+      .pipe(typescript())
+      .pipe(modulate({}))
+  var libs = gulp.src(['./node_modules/route-recognizer/dist/route-recognizer.js']);
+
+  return gulpMerge(directive, generated,libs)
       .pipe(concat('router.es5.js'))
       .pipe(ngAnnotate())
       .pipe(gulp.dest(BUILD_DIR));

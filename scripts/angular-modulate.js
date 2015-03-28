@@ -75,22 +75,22 @@ module.exports = function (opts) {
 function transform (dir, contents) {
   var imports = [];
 
-  contents = contents.replace(IMPORT_RE, function (match, obj, includePath) {
-    if (!MODULE_LOCATIONS[includePath]) {
-      imports.push(match);
-      return '';
-    }
-    var includeFile = path.join(dir, MODULE_LOCATIONS[includePath]);
-    console.log(dir, includeFile);
-    if (includeFile.substr(-3) !== '.js') {
-      includeFile += '.js';
-    }
-    return 'var ' + obj + '=' + inlineModule(includeFile) + ';';
-  });
-
-  var services = imports.map(getParts).map(serviceify);
-  contents = traceur.compile(contents, TRACEUR_OPTS);
-  return detraceurify(unwrapify(contents, services));
+  // contents = contents.replace(IMPORT_RE, function (match, obj, includePath) {
+  //   if (!MODULE_LOCATIONS[includePath]) {
+  //     imports.push(match);
+  //     return '';
+  //   }
+  //   var includeFile = path.join(dir, MODULE_LOCATIONS[includePath]);
+  //   console.log(dir, includeFile);
+  //   if (includeFile.substr(-3) !== '.js') {
+  //     includeFile += '.js';
+  //   }
+  //   return 'var ' + obj + '=' + inlineModule(includeFile) + ';';
+  // });
+  //
+  // var services = imports.map(getParts).map(serviceify);
+  // contents = traceur.compile(contents, TRACEUR_OPTS);
+  return detraceurify(unwrapify(contents/*, services*/));
 }
 
 
