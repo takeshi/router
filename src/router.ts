@@ -8,7 +8,7 @@
  * You can see the state of the router by inspecting the read-only field `router.navigating`.
  * This may be useful for showing a spinner, for instance.
  */
-class Router implements IRouter{
+class Router implements IRouter {
   name: string;
   parent: Router;
   navigating: boolean;
@@ -91,7 +91,7 @@ class Router implements IRouter{
 
     instruction.router = this;
     return this.pipeline.process(instruction)
-      .then(() => this._finishNavigating(),() => this._finishNavigating())
+      .then(() => this._finishNavigating(), () => this._finishNavigating())
       .then(() => instruction.canonicalUrl);
   }
 
@@ -105,13 +105,13 @@ class Router implements IRouter{
 
 
   makeDescendantRouters(instruction: Instruction) {
-    this.traverseInstructionSync(instruction,(instruction: Instruction, childInstruction: Instruction) => {
+    this.traverseInstructionSync(instruction, (instruction: Instruction, childInstruction: Instruction) => {
       childInstruction.router = instruction.router.childRouter(childInstruction.component);
     });
   }
 
 
-  traverseInstructionSync(instruction: Instruction, fn: Function):void {
+  traverseInstructionSync(instruction: Instruction, fn: Function): void {
     forEach(instruction.viewports,
       (childInstruction: Instruction, viewportName: string) => fn(instruction, childInstruction));
     forEach(instruction.viewports,
@@ -119,13 +119,13 @@ class Router implements IRouter{
   }
 
 
-  traverseInstruction(instruction: Instruction, fn: Function):Promise<any> {
+  traverseInstruction(instruction: Instruction, fn: Function): Promise<any> {
     if (!instruction) {
       return Promise.resolve();
     }
     return mapObjAsync(instruction.viewports,
       (childInstruction: Instruction, viewportName: string) => boolToPromise(fn(childInstruction, viewportName)))
-      .then(() => mapObjAsync(instruction.viewports,(childInstruction: Instruction, viewportName: string) => {
+      .then(() => mapObjAsync(instruction.viewports, (childInstruction: Instruction, viewportName: string) => {
       return childInstruction.router.traverseInstruction(childInstruction, fn);
     }));
   }
@@ -139,7 +139,7 @@ class Router implements IRouter{
     return this.queryViewports((port: Port, name: string) => {
       return port.activate(instruction.viewports[name]);
     })
-      .then(() => mapObjAsync(instruction.viewports,(instruction: Instruction) => {
+      .then(() => mapObjAsync(instruction.viewports, (instruction: Instruction) => {
       return instruction.router.activatePorts(instruction);
     }));
   }
@@ -157,7 +157,7 @@ class Router implements IRouter{
 
   traversePorts(fn: Function): Promise<any> {
     return this.queryViewports(fn)
-      .then(() => mapObjAsync(this.children,(child: Router) => child.traversePorts(fn)));
+      .then(() => mapObjAsync(this.children, (child: Router) => child.traversePorts(fn)));
   }
 
   queryViewports(fn: Function) {

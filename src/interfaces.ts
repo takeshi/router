@@ -7,10 +7,10 @@ interface Instruction {
   params?: recognizer.Params;
   component?: string;
   router?: IRouter;
-  locals?:any;
-  template?:string;
-  controller?:any;
-  path?:string;
+  locals?: any;
+  template?: string;
+  controller?: any;
+  path?: string;
 }
 
 interface IRouter {
@@ -45,19 +45,19 @@ interface ControllerIntrospectorProvider {
 }
 
 interface ComponentLoader {
-  component:NameExchanger;
-  controllerName:NameExchanger;
-  template:NameExchanger;
+  component: NameExchanger;
+  controllerName: NameExchanger;
+  template: NameExchanger;
 }
 
-interface NameExchanger{
- (name:string):string;
+interface NameExchanger {
+  (name: string): string;
 }
 
 interface ControllerRegister {
   (name: string, ctrl: any): void;
 }
 
-interface ControllerIntrospector{
-  (newFunc:ControllerRegister):void;
+interface ControllerIntrospector {
+  (newFunc: ControllerRegister): void;
 }

@@ -15,7 +15,7 @@ class Pipeline {
     // make a copy
     var steps = this.steps.slice(0);
 
-    function processOne(result:any):Promise<any> {
+    function processOne(result: any): Promise<any> {
       if (steps.length === 0) {
         return result;
       }

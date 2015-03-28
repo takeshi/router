@@ -37,10 +37,10 @@ angular.module('ng')
  * decorates with routing info
  */
 function controllerProviderDecorator(
- $controllerProvider:angular.IControllerProvider,
- $controllerIntrospectorProvider:ControllerIntrospectorProvider) {
+  $controllerProvider: angular.IControllerProvider,
+  $controllerIntrospectorProvider: ControllerIntrospectorProvider) {
   var register = $controllerProvider.register;
-  $controllerProvider.register = function (name:string, ctrl:any) {
+  $controllerProvider.register = function(name: string, ctrl: any) {
     $controllerIntrospectorProvider.register(name, ctrl);
     return register.apply(this, arguments);
   };
@@ -50,10 +50,10 @@ function controllerProviderDecorator(
  * private service that holds route mappings for each controller
  */
 function $controllerIntrospectorProvider() {
-  var controllers:any[] = [];
-  var onControllerRegistered:ControllerRegister = null;
+  var controllers: any[] = [];
+  var onControllerRegistered: ControllerRegister = null;
   return {
-    register: function (name:string, constructor:any) {
+    register: function(name: string, constructor: any) {
       if (angular.isArray(constructor)) {
         constructor = constructor[constructor.length - 1];
       }
@@ -61,17 +61,17 @@ function $controllerIntrospectorProvider() {
         if (onControllerRegistered) {
           onControllerRegistered(name, constructor.$routeConfig);
         } else {
-          controllers.push({name: name, config: constructor.$routeConfig});
+          controllers.push({ name: name, config: constructor.$routeConfig });
         }
       }
     },
-    $get: ['$componentLoader', function ($componentLoader:ComponentLoader) {
-      return function (newOnControllerRegistered:ControllerRegister) {
-        onControllerRegistered = function (name, constructor) {
+    $get: ['$componentLoader', function($componentLoader: ComponentLoader) {
+      return function(newOnControllerRegistered: ControllerRegister) {
+        onControllerRegistered = function(name, constructor) {
           name = $componentLoader.component(name);
           return newOnControllerRegistered(name, constructor);
         };
-        while(controllers.length > 0) {
+        while (controllers.length > 0) {
           var rule = controllers.pop();
           onControllerRegistered(rule.name, rule.config);
         }
@@ -80,21 +80,21 @@ function $controllerIntrospectorProvider() {
   }
 }
 
-function routerFactory($$rootRouter:RootRouter, $rootScope:angular.IRootScopeService, $location:angular.ILocationService, $$grammar:Grammar, $controllerIntrospector:ControllerIntrospector) {
+function routerFactory($$rootRouter: RootRouter, $rootScope: angular.IRootScopeService, $location: angular.ILocationService, $$grammar: Grammar, $controllerIntrospector: ControllerIntrospector) {
 
-  $controllerIntrospector(function (name, config) {
+  $controllerIntrospector(function(name, config) {
     $$grammar.config(name, config);
   });
 
-  $rootScope.$watch(function () {
+  $rootScope.$watch(function() {
     return $location.path();
-  }, function (newUrl) {
-    $$rootRouter.navigate(newUrl);
-  });
+  }, function(newUrl) {
+      $$rootRouter.navigate(newUrl);
+    });
 
   var nav = $$rootRouter.navigate;
-  $$rootRouter.navigate = function (url) {
-    return nav.call(this, url).then(function (newUrl:string) {
+  $$rootRouter.navigate = function(url) {
+    return nav.call(this, url).then(function(newUrl: string) {
       if (newUrl) {
         $location.path(newUrl);
       }
@@ -118,7 +118,7 @@ function routerFactory($$rootRouter:RootRouter, $rootScope:angular.IRootScopeSer
  *
  * The value for the `ngViewport` attribute is optional.
  */
-function ngViewportDirective($animate:angular.animate.IAnimateService, $injector:angular.auto.IInjectorService, $q:angular.IQService, $router:Router) {
+function ngViewportDirective($animate: angular.animate.IAnimateService, $injector: angular.auto.IInjectorService, $q: angular.IQService, $router: Router) {
   var rootRouter = $router;
 
   return {
@@ -128,26 +128,26 @@ function ngViewportDirective($animate:angular.animate.IAnimateService, $injector
     priority: 400,
     require: ['?^^ngViewport', 'ngViewport'],
     link: viewportLink,
-    controller: function() {},
+    controller: function() { },
     controllerAs: '$$ngViewport'
   };
 
-  function invoke(method:Function, context:recognizer.Result, instruction:Instruction) {
+  function invoke(method: Function, context: recognizer.Result, instruction: Instruction) {
     return $injector.invoke(method, context, instruction.locals);
   }
 
-  function viewportLink(scope:angular.IScope, $element:JQuery, attrs:angular.IAttributes, ctrls:any, $transclude:angular.ITranscludeFunction) {
+  function viewportLink(scope: angular.IScope, $element: JQuery, attrs: angular.IAttributes, ctrls: any, $transclude: angular.ITranscludeFunction) {
     var viewportName = attrs['ngViewport'] || 'default',
-        parentCtrl = ctrls[0],
-        myCtrl = ctrls[1],
-        router = (parentCtrl && parentCtrl.$$router) || rootRouter;
+      parentCtrl = ctrls[0],
+      myCtrl = ctrls[1],
+      router = (parentCtrl && parentCtrl.$$router) || rootRouter;
 
-    var currentScope:angular.IScope,
-        newScope:angular.IScope,
-        currentController:any,
-        currentElement:JQuery,
-        previousLeaveAnimation:ng.IPromise<any>,
-        previousInstruction:string;
+    var currentScope: angular.IScope,
+      newScope: angular.IScope,
+      currentController: any,
+      currentElement: JQuery,
+      previousLeaveAnimation: ng.IPromise<any>,
+      previousInstruction: string;
 
     function cleanupLastView() {
       if (previousLeaveAnimation) {
@@ -169,13 +169,13 @@ function ngViewportDirective($animate:angular.animate.IAnimateService, $injector
     }
 
     router.registerViewport({
-      canDeactivate: function(instruction:Instruction) {
+      canDeactivate: function(instruction: Instruction) {
         if (currentController && currentController.canDeactivate) {
           return invoke(currentController.canDeactivate, currentController, instruction);
         }
         return true;
       },
-      activate: function(instruction:Instruction) {
+      activate: function(instruction: Instruction) {
         var nextInstruction = serializeInstruction(instruction);
         if (nextInstruction === previousInstruction) {
           return;
@@ -185,7 +185,7 @@ function ngViewportDirective($animate:angular.animate.IAnimateService, $injector
         myCtrl.$$router = instruction.router;
         myCtrl.$$template = instruction.template;
         var componentName = instruction.component;
-        var clone = $transclude(newScope, function(clone:JQuery) {
+        var clone = $transclude(newScope, function(clone: JQuery) {
           $animate.enter(clone, null, currentElement || $element);
           cleanupLastView();
         });
@@ -193,7 +193,7 @@ function ngViewportDirective($animate:angular.animate.IAnimateService, $injector
         var newController = instruction.controller;
         newScope[componentName] = newController;
 
-        var result:any;
+        var result: any;
         if (currentController && currentController.deactivate) {
           result = $q.when(invoke(currentController.deactivate, currentController, instruction));
         }
@@ -220,23 +220,23 @@ function ngViewportDirective($animate:angular.animate.IAnimateService, $injector
   }
 
   // TODO: how best to serialize?
-  function serializeInstruction(instruction:Instruction):string {
+  function serializeInstruction(instruction: Instruction): string {
     return JSON.stringify({
       path: instruction.path,
       component: instruction.component,
-      params: Object.keys(instruction.params).reduce(function (acc:any, key:string) {
+      params: Object.keys(instruction.params).reduce(function(acc: any, key: string) {
         return (key !== 'childRoute' && (acc[key] = instruction.params[key])), acc;
       }, {})
     });
   }
 }
 
-function ngViewportFillContentDirective($compile:angular.ICompileService) {
+function ngViewportFillContentDirective($compile: angular.ICompileService) {
   return {
     restrict: 'EA',
     priority: -400,
     require: 'ngViewport',
-    link: function(scope:angular.IScope, $element:JQuery, attrs:angular.IAttributes, ctrl:any) {
+    link: function(scope: angular.IScope, $element: JQuery, attrs: angular.IAttributes, ctrl: any) {
       var template = ctrl.$$template;
       $element.html(template);
       var link = $compile($element.contents());
@@ -245,7 +245,7 @@ function ngViewportFillContentDirective($compile:angular.ICompileService) {
   };
 }
 
-function makeComponentString(name:string):string {
+function makeComponentString(name: string): string {
   return [
     '<router-component component-name="', name, '">',
     '</router-component>'
@@ -278,7 +278,7 @@ var LINK_MICROSYNTAX_RE = /^(.+?)(?:\((.*)\))?$/;
  * </div>
  * ```
  */
-function ngLinkDirective($router:Router, $location:angular.ILocaleService, $parse:angular.IModelParser) {
+function ngLinkDirective($router: Router, $location: angular.ILocaleService, $parse: angular.IModelParser) {
   var rootRouter = $router;
 
   return {
@@ -287,7 +287,7 @@ function ngLinkDirective($router:Router, $location:angular.ILocaleService, $pars
     link: ngLinkDirectiveLinkFn
   };
 
-  function ngLinkDirectiveLinkFn(scope:angular.IScope, elt:JQuery, attrs:angular.IAttributes, ctrl:any) {
+  function ngLinkDirectiveLinkFn(scope: angular.IScope, elt: JQuery, attrs: angular.IAttributes, ctrl: any) {
     var router = (ctrl && ctrl.$$router) || rootRouter;
     if (!router) {
       return;
@@ -297,7 +297,7 @@ function ngLinkDirective($router:Router, $location:angular.ILocaleService, $pars
     var parts = link.match(LINK_MICROSYNTAX_RE);
     var routeName = parts[1];
     var routeParams = parts[2];
-    var url:string;
+    var url: string;
 
     if (routeParams) {
       var routeParamsGetter = $parse(routeParams);
@@ -310,9 +310,9 @@ function ngLinkDirective($router:Router, $location:angular.ILocaleService, $pars
         scope.$watch(function() {
           return routeParamsGetter(scope);
         }, function(params) {
-          url = '.' + router.generate(routeName, params);
-          elt.attr('href', url);
-        }, true);
+            url = '.' + router.generate(routeName, params);
+            elt.attr('href', url);
+          }, true);
       }
     } else {
       url = '.' + router.generate(routeName);
@@ -322,16 +322,16 @@ function ngLinkDirective($router:Router, $location:angular.ILocaleService, $pars
 }
 
 
-function anchorLinkDirective($router:Router) {
+function anchorLinkDirective($router: Router) {
   return {
     restrict: 'E',
-    link: function(scope:angular.IScope, element:JQuery) {
+    link: function(scope: angular.IScope, element: JQuery) {
       // If the linked element is not an anchor tag anymore, do nothing
       if (element[0].nodeName.toLowerCase() !== 'a') return;
 
       // SVGAElement does not use the href attribute, but rather the 'xlinkHref' attribute.
       var hrefAttrName = Object.prototype.toString.call(element.prop('href')) === '[object SVGAnimatedString]' ?
-                     'xlink:href' : 'href';
+        'xlink:href' : 'href';
 
       element.on('click', function(event) {
         var href = element.attr(hrefAttrName);
@@ -348,7 +348,7 @@ function anchorLinkDirective($router:Router) {
 }
 
 function setupRoutersStepFactory() {
-  return function (instruction:Instruction) {
+  return function(instruction: Instruction) {
     return instruction.router.makeDescendantRouters(instruction);
   }
 }
@@ -357,8 +357,8 @@ function setupRoutersStepFactory() {
  * $initLocalsStep
  */
 function initLocalsStepFactory() {
-  return function initLocals(instruction:Instruction) {
-    return instruction.router.traverseInstruction(instruction, function(instruction:Instruction) {
+  return function initLocals(instruction: Instruction) {
+    return instruction.router.traverseInstruction(instruction, function(instruction: Instruction) {
       return instruction.locals = {
         $router: instruction.router,
         $routeParams: (instruction.params || {})
@@ -370,15 +370,15 @@ function initLocalsStepFactory() {
 /*
  * $initControllersStep
  */
-function initControllersStepFactory($controller:Function, $componentLoader:ComponentLoader) {
-  return function initControllers(instruction:Instruction) {
-    return instruction.router.traverseInstruction(instruction, function(instruction:Instruction) {
+function initControllersStepFactory($controller: Function, $componentLoader: ComponentLoader) {
+  return function initControllers(instruction: Instruction) {
+    return instruction.router.traverseInstruction(instruction, function(instruction: Instruction) {
       var controllerName = $componentLoader.controllerName(instruction.component);
       var locals = instruction.locals;
-      var ctrl:any;
+      var ctrl: any;
       try {
         ctrl = $controller(controllerName, locals);
-      } catch(e) {
+      } catch (e) {
         console.warn && console.warn('Could not instantiate controller', controllerName);
         ctrl = $controller(angular.noop, locals);
       }
@@ -388,32 +388,32 @@ function initControllersStepFactory($controller:Function, $componentLoader:Compo
 }
 
 function runCanDeactivateHookStepFactory() {
-  return function runCanDeactivateHook(instruction:Instruction) {
+  return function runCanDeactivateHook(instruction: Instruction) {
     return instruction.router.canDeactivatePorts(instruction);
   };
 }
 
-function runCanActivateHookStepFactory($injector:angular.auto.IInjectorService) {
+function runCanActivateHookStepFactory($injector: angular.auto.IInjectorService) {
 
-  function invoke(method:Function, context:recognizer.Result, instruction:Instruction) {
+  function invoke(method: Function, context: recognizer.Result, instruction: Instruction) {
     return $injector.invoke(method, context, {
       $routeParams: instruction.params
     });
   }
 
-  return function runCanActivateHook(instruction:Instruction) {
-    return instruction.router.traverseInstruction(instruction, function(instruction:Instruction) {
+  return function runCanActivateHook(instruction: Instruction) {
+    return instruction.router.traverseInstruction(instruction, function(instruction: Instruction) {
       var controller = instruction.controller;
       return !controller.canActivate || invoke(controller.canActivate, controller, instruction);
     });
   }
 }
 
-function loadTemplatesStepFactory($componentLoader:ComponentLoader, $templateRequest:angular.ITemplateRequestService) {
-  return function loadTemplates(instruction:Instruction) {
-    return instruction.router.traverseInstruction(instruction, function(instruction:Instruction) {
+function loadTemplatesStepFactory($componentLoader: ComponentLoader, $templateRequest: angular.ITemplateRequestService) {
+  return function loadTemplates(instruction: Instruction) {
+    return instruction.router.traverseInstruction(instruction, function(instruction: Instruction) {
       var componentTemplateUrl = $componentLoader.template(instruction.component);
-      return $templateRequest(componentTemplateUrl).then(function (templateHtml) {
+      return $templateRequest(componentTemplateUrl).then(function(templateHtml) {
         return instruction.template = templateHtml;
       });
     });
@@ -421,13 +421,13 @@ function loadTemplatesStepFactory($componentLoader:ComponentLoader, $templateReq
 }
 
 
-function activateStepValue(instruction:Instruction) {
+function activateStepValue(instruction: Instruction) {
   return instruction.router.activatePorts(instruction);
 }
 
 
 function pipelineProvider() {
-  var stepConfiguration:any[];
+  var stepConfiguration: any[];
 
   var protoStepConfiguration = [
     '$setupRoutersStep',
@@ -441,19 +441,19 @@ function pipelineProvider() {
 
   return {
     steps: protoStepConfiguration.slice(0),
-    config: function (newConfig:string[]) {
+    config: function(newConfig: string[]) {
       protoStepConfiguration = newConfig;
     },
-    $get: function ($injector:angular.auto.IInjectorService, $q:angular.IQService) {
-      stepConfiguration = protoStepConfiguration.map(function (step) {
+    $get: function($injector: angular.auto.IInjectorService, $q: angular.IQService) {
+      stepConfiguration = protoStepConfiguration.map(function(step) {
         return $injector.get(step);
       });
       return {
-        process: function(instruction:Instruction):any {
+        process: function(instruction: Instruction): any {
           // make a copy
           var steps = stepConfiguration.slice(0);
 
-          function processOne(result:recognizer.Result):any {
+          function processOne(result: recognizer.Result): any {
             if (steps.length === 0) {
               return result;
             }
@@ -489,21 +489,21 @@ function $componentLoaderProvider() {
 
   var DEFAULT_SUFFIX = 'Controller';
 
-  var componentToCtrl = function componentToCtrlDefault(name:string) {
+  var componentToCtrl = function componentToCtrlDefault(name: string) {
     return name[0].toUpperCase() + name.substr(1) + DEFAULT_SUFFIX;
   };
 
-  var componentToTemplate = function componentToTemplateDefault(name:string) {
+  var componentToTemplate = function componentToTemplateDefault(name: string) {
     var dashName = dashCase(name);
     return './components/' + dashName + '/' + dashName + '.html';
   };
 
-  var ctrlToComponent = function ctrlToComponentDefault(name:string) {
+  var ctrlToComponent = function ctrlToComponentDefault(name: string) {
     return name[0].toLowerCase() + name.substr(1, name.length - DEFAULT_SUFFIX.length - 1);
   };
 
   return {
-    $get: function ():ComponentLoader {
+    $get: function(): ComponentLoader {
       return {
         controllerName: componentToCtrl,
         template: componentToTemplate,
@@ -515,7 +515,7 @@ function $componentLoaderProvider() {
      * @name $componentLoaderProvider#setCtrlNameMapping
      * @description takes a function for mapping component names to component controller names
      */
-    setCtrlNameMapping: function(newFn:NameExchanger) {
+    setCtrlNameMapping: function(newFn: NameExchanger) {
       componentToCtrl = newFn;
       return this;
     },
@@ -524,7 +524,7 @@ function $componentLoaderProvider() {
      * @name $componentLoaderProvider#setCtrlNameMapping
      * @description takes a function for mapping component controller names to component names
      */
-    setComponentFromCtrlMapping: function (newFn:NameExchanger) {
+    setComponentFromCtrlMapping: function(newFn: NameExchanger) {
       ctrlToComponent = newFn;
       return this;
     },
@@ -533,7 +533,7 @@ function $componentLoaderProvider() {
      * @name $componentLoaderProvider#setTemplateMapping
      * @description takes a function for mapping component names to component template URLs
      */
-    setTemplateMapping: function(newFn:NameExchanger) {
+    setTemplateMapping: function(newFn: NameExchanger) {
       componentToTemplate = newFn;
       return this;
     }
@@ -541,13 +541,13 @@ function $componentLoaderProvider() {
 }
 
 // this is a hack as a result of the build system used to transpile
-function privatePipelineFactory($pipeline:Pipeline) {
+function privatePipelineFactory($pipeline: Pipeline) {
   return $pipeline;
 }
 
 
-function dashCase(str:string) {
-  return str.replace(/([A-Z])/g, function ($1) {
+function dashCase(str: string) {
+  return str.replace(/([A-Z])/g, function($1) {
     return '-' + $1.toLowerCase();
   });
 }
