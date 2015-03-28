@@ -1,16 +1,16 @@
-import RouteRecognizer from 'route-recognizer';
 
 var CHILD_ROUTE_SUFFIX = '/*childRoute';
 
 /*
  * only one of these
  */
-export class Grammar {
+class Grammar {
+  rules:{[name:string]:CanonicalRecognizer};
   constructor() {
     this.rules = {};
   }
 
-  config(name, config) {
+  config(name:string, config:Mapping) {
     if (name === 'app') {
       name = '/';
     }
@@ -27,7 +27,7 @@ export class Grammar {
       return;
     }
 
-    var context = componentRecognizer.recognize(url);
+    var context:recognizer.Result = componentRecognizer.recognize(url);
     if (!context) {
       return;
     }
@@ -36,7 +36,7 @@ export class Grammar {
     var lastHandler = lastContextChunk.handler;
     var lastParams = lastContextChunk.params;
 
-    var instruction = {
+    var instruction:Instruction = {
       viewports: {},
       params: lastParams
     };
@@ -46,21 +46,21 @@ export class Grammar {
       // TODO: handle multiple children
       instruction.canonicalUrl = lastHandler.rewroteUrl.substr(0, lastHandler.rewroteUrl.length - (lastParams.childRoute.length + 1));
 
-      forEach(lastHandler.components, (componentName, viewportName) => {
+      forEach(lastHandler.components, (componentName:string, viewportName:string) => {
         instruction.viewports[viewportName] = this.recognize(childUrl, componentName);
       });
 
       instruction.canonicalUrl += instruction.viewports[Object.keys(instruction.viewports)[0]].canonicalUrl;
     } else {
       instruction.canonicalUrl = lastHandler.rewroteUrl;
-      forEach(lastHandler.components, (componentName, viewportName) => {
+      forEach(lastHandler.components, (componentName:string, viewportName:string) => {
         instruction.viewports[viewportName] = {
           viewports: {}
         };
       });
     }
 
-    forEach(instruction.viewports, (instruction, componentName) => {
+    forEach(instruction.viewports, (instruction:Instruction, componentName:string) => {
       instruction.component = lastHandler.components[componentName];
       instruction.params = lastParams;
     });
@@ -68,12 +68,12 @@ export class Grammar {
     return instruction;
   }
 
-  generate(name, params) {
+  generate(name:string, params:recognizer.Params) {
     var path = '';
-    var solution;
+    var solution:RouteRecognizer;
     do {
       solution = null;
-      forEach(this.rules, recognizer => {
+      forEach(this.rules, (recognizer:RouteRecognizer) => {
         if (recognizer.hasRoute(name)) {
           path = recognizer.generate(name, params) + path;
           solution = recognizer;
@@ -93,21 +93,24 @@ export class Grammar {
  * includes redirect rules
  */
 class CanonicalRecognizer {
-  constructor(name) {
+  name:string;
+  recognizer:RouteRecognizer;
+  rewrites:{[name:string]:RewriteFunction};
+  constructor(name:string) {
     this.name = name;
     this.rewrites = {};
     this.recognizer = new RouteRecognizer();
   }
 
-  config(mapping) {
+  config(mapping:Mapping|Mapping[]) {
     if (mapping instanceof Array) {
-      mapping.forEach(nav => this.configOne(nav));
+      (<Mapping[]>mapping).forEach(nav => this.configOne(nav));
     } else {
-      this.configOne(mapping);
+      this.configOne(<Mapping>mapping);
     }
   }
 
-  getCanonicalUrl(url) {
+  getCanonicalUrl(url:string) {
     if (url[0] === '.') {
       url = url.substr(1);
     }
@@ -117,7 +120,7 @@ class CanonicalRecognizer {
     }
 
     // TODO: normalize this
-    forEach(this.rewrites, function (toUrl, fromUrl) {
+    forEach(this.rewrites, function (toUrl:string, fromUrl:string) {
       if (fromUrl === '/') {
         if (url === '/') {
           url = toUrl;
@@ -130,7 +133,7 @@ class CanonicalRecognizer {
     return url;
   }
 
-  configOne(mapping) {
+  configOne(mapping:Mapping) {
     if (mapping.redirectTo) {
       if (this.rewrites[mapping.path]) {
         throw new Error('"' + mapping.path + '" already maps to "' + this.rewrites[mapping.path] + '"');
@@ -150,12 +153,12 @@ class CanonicalRecognizer {
     if (typeof mapping.components === 'string') {
       mapping.components = { default: mapping.components };
     }
-    var aliases;
+    var aliases:string[];
     if (mapping.as) {
       aliases = [mapping.as];
     } else {
       aliases = mapObj(mapping.components,
-          (componentName, viewportName) => viewportName + ':' + componentName);
+          (componentName:string, viewportName:string) => viewportName + ':' + componentName);
 
       if (mapping.components.default) {
         aliases.push(mapping.components.default);
@@ -171,7 +174,7 @@ class CanonicalRecognizer {
     }]);
   }
 
-  recognize(url) {
+  recognize(url:string):recognizer.Result {
     var canonicalUrl = this.getCanonicalUrl(url);
     var context = this.recognizer.recognize(canonicalUrl);
     if (context) {
@@ -180,26 +183,11 @@ class CanonicalRecognizer {
     return context;
   }
 
-  generate(name, params) {
+  generate(name:string, params:recognizer.Params) {
     return this.recognizer.generate(name, params);
   }
 
-  hasRoute(name) {
+  hasRoute(name:string) {
     return this.recognizer.hasRoute(name);
   }
-}
-
-
-function copy(obj) {
-  return JSON.parse(JSON.stringify(obj));
-}
-
-function forEach(obj, fn) {
-  Object.keys(obj).forEach(key => fn(obj[key], key));
-}
-
-function mapObj(obj, fn) {
-  var result = [];
-  Object.keys(obj).forEach(key => result.push(fn(obj[key], key)));
-  return result;
 }

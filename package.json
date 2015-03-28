@@ -37,6 +37,7 @@
     "gulp-ng-annotate": "^0.5.2",
     "gulp-rename": "^1.2.0",
     "gulp-traceur": "^0.13.0",
+    "gulp-typescript": "^2.5.0",
     "highlight.js": "^8.4.0",
     "karma": "^0.12.24",
     "karma-chrome-launcher": "^0.1.5",
@@ -49,7 +50,8 @@
     "marked": "^0.3.2",
     "protractor": "^0.21.0",
     "q": "^1.1.2",
-    "through2": "^0.4.1"
+    "through2": "^0.4.1",
+    "typescript": "^1.4.1"
   },
   "scripts": {
     "test": "karma start --single-run"

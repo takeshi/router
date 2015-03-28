@@ -7,6 +7,7 @@ var rename = require('gulp-rename');
 var ngAnnotate = require('gulp-ng-annotate');
 var gulpMerge = require('gulp-merge')
 var modulate = require('./scripts/angular-modulate');
+var typescript = require('gulp-typescript');
 
 var CONFIG = require('./config');
 var SERVER_CONFIG = CONFIG.server;
@@ -15,15 +16,20 @@ var BUILD_DIR = CONFIG.build.dir;
 var PATH = {
   SRC: './src/**/*',
   DOCS: './docs/**/*.md',
-  ATS: './src/**/*.ats'
+  ATS: './src/**/*.ats',
+  TS: './src/**/*.ts',
 };
 
 gulp.task('build', ['transpile', 'angularify']);
 
 gulp.task('transpile', function() {
-  return gulp.src(PATH.ATS)
-      .pipe(traceur(TRACEUR_OPTIONS))
-      .pipe(rename({extname: '.js'}))
+  return gulp.src(PATH.TS)
+      .pipe(typescript({
+        module:"amd",
+        noImplicitAny:true,
+        declarationFiles:true
+      }))
+      // .pipe(rename({extname: '.js'}))
       .pipe(gulp.dest(BUILD_DIR));
 });
 

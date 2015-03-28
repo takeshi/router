@@ -1,5 +1,3 @@
-import {Grammar} from './grammar';
-import {Pipeline} from './pipeline';
 
 /**
  * @name Router
@@ -7,8 +5,18 @@ import {Pipeline} from './pipeline';
  * @description
  * The router is responsible for mapping URLs to components.
  */
-class Router {
-  constructor(grammar:Grammar, pipeline:Pipeline, parent, name) {
+class Router implements IRouter{
+  name: string;
+  parent: Router;
+  navigating: boolean;
+  ports: any;
+  children: { [name: string]: Router };
+  registry: Grammar;
+  pipeline: Pipeline;
+  lastNavigationAttempt: string;
+  previousUrl: string;
+
+  constructor(grammar: Grammar, pipeline: Pipeline, parent: Router, name: string) {
     this.name = name;
     this.parent = parent || null;
     this.navigating = false;
@@ -37,7 +45,7 @@ class Router {
    * Register an object to notify of route changes.
    * You probably don't need to use this unless you're writing a reusable component.
    */
-  registerViewport(view, name = 'default') {
+  registerViewport(view: Instruction, name = 'default') {
     this.ports[name] = view;
     return this.renavigate();
   }
@@ -53,7 +61,7 @@ class Router {
    *
    * For more, see the [configuration](configuration) guide.
    */
-  config(mapping) {
+  config(mapping: Mapping) {
     this.registry.config(this.name, mapping);
     return this.renavigate();
   }
@@ -63,7 +71,7 @@ class Router {
    * @description Navigate to a URL.
    * Returns the cannonical URL for the route navigated to.
    */
-  navigate(url) {
+  navigate(url: string) {
     if (this.navigating) {
       return Promise.resolve();
     }
@@ -73,15 +81,15 @@ class Router {
     var instruction = this.recognize(url);
 
     if (!instruction) {
-      return Promise.reject();
+      return Promise.reject(null);
     }
 
     this._startNavigating();
 
     instruction.router = this;
     return this.pipeline.process(instruction)
-        .then(() => this._finishNavigating(), () => this._finishNavigating())
-        .then(() => instruction.canonicalUrl);
+      .then(() => this._finishNavigating(),() => this._finishNavigating())
+      .then(() => instruction.canonicalUrl);
   }
 
   _startNavigating() {
@@ -93,30 +101,30 @@ class Router {
   }
 
 
-  makeDescendantRouters(instruction) {
-    this.traverseInstructionSync(instruction, (instruction, childInstruction) => {
+  makeDescendantRouters(instruction: Instruction) {
+    this.traverseInstructionSync(instruction,(instruction: Instruction, childInstruction: Instruction) => {
       childInstruction.router = instruction.router.childRouter(childInstruction.component);
     });
   }
 
 
-  traverseInstructionSync(instruction, fn) {
+  traverseInstructionSync(instruction: Instruction, fn: Function):void {
     forEach(instruction.viewports,
-        (childInstruction, viewportName) => fn(instruction, childInstruction));
+      (childInstruction: Instruction, viewportName: string) => fn(instruction, childInstruction));
     forEach(instruction.viewports,
-        (childInstruction) => this.traverseInstructionSync(childInstruction, fn));
+      (childInstruction: Instruction) => this.traverseInstructionSync(childInstruction, fn));
   }
 
 
-  traverseInstruction(instruction, fn) {
+  traverseInstruction(instruction: Instruction, fn: Function):Promise<any> {
     if (!instruction) {
       return Promise.resolve();
     }
     return mapObjAsync(instruction.viewports,
-      (childInstruction, viewportName) => boolToPromise(fn(childInstruction, viewportName)))
-      .then(() => mapObjAsync(instruction.viewports, (childInstruction, viewportName) => {
-        return childInstruction.router.traverseInstruction(childInstruction, fn);
-      }));
+      (childInstruction: Instruction, viewportName: string) => boolToPromise(fn(childInstruction, viewportName)))
+      .then(() => mapObjAsync(instruction.viewports,(childInstruction: Instruction, viewportName: string) => {
+      return childInstruction.router.traverseInstruction(childInstruction, fn);
+    }));
   }
 
 
@@ -124,11 +132,11 @@ class Router {
    * given a instruction obj
    * update viewports accordingly
    */
-  activatePorts(instruction) {
-    return this.queryViewports((port, name) => {
+  activatePorts(instruction: Instruction): Promise<any> {
+    return this.queryViewports((port: Port, name: string) => {
       return port.activate(instruction.viewports[name]);
     })
-    .then(() => mapObjAsync(instruction.viewports, (instruction) => {
+      .then(() => mapObjAsync(instruction.viewports,(instruction: Instruction) => {
       return instruction.router.activatePorts(instruction);
     }));
   }
@@ -138,23 +146,23 @@ class Router {
    * given a instruction obj
    * update viewports accordingly
    */
-  canDeactivatePorts(instruction) {
-    return this.traversePorts((port, name) => {
+  canDeactivatePorts(instruction: Instruction): Promise<any> {
+    return this.traversePorts((port: Port, name: string) => {
       return boolToPromise(port.canDeactivate(instruction.viewports[name]));
     });
   }
 
-  traversePorts(fn) {
+  traversePorts(fn: Function): Promise<any> {
     return this.queryViewports(fn)
-        .then(() => mapObjAsync(this.children, (child) => child.traversePorts(fn)));
+      .then(() => mapObjAsync(this.children,(child: Router) => child.traversePorts(fn)));
   }
 
-  queryViewports(fn) {
+  queryViewports(fn: Function) {
     return mapObjAsync(this.ports, fn);
   }
 
 
-  recognize(url) {
+  recognize(url: string) {
     return this.registry.recognize(url);
   }
 
@@ -179,39 +187,21 @@ class Router {
    * @description generate a URL from a component name and optional map of parameters.
    * The URL is relative to the app's base href.
    */
-  generate(name:string, params) {
+  generate(name: string, params: recognizer.Params) {
     return this.registry.generate(name, params);
   }
 
 }
 
-export class RootRouter extends Router {
-  constructor(grammar:Grammar, pipeline:Pipeline) {
+class RootRouter extends Router {
+  constructor(grammar: Grammar, pipeline: Pipeline) {
     super(grammar, pipeline, null, '/');
   }
 }
 
 class ChildRouter extends Router {
-  constructor(parent, name) {
+  constructor(parent: Router, name: string) {
     super(parent.registry, parent.pipeline, parent, name);
     this.parent = parent;
   }
-}
-
-function forEach(obj, fn) {
-  Object.keys(obj).forEach(key => fn(obj[key], key));
-}
-
-function mapObjAsync(obj, fn) {
-  return Promise.all(mapObj(obj, fn));
-}
-
-function mapObj(obj, fn) {
-  var result = [];
-  Object.keys(obj).forEach(key => result.push(fn(obj[key], key)));
-  return result;
-}
-
-function boolToPromise (value) {
-  return value ? Promise.resolve(value) : Promise.reject();
 }
