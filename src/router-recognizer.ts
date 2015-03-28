@@ -16,11 +16,11 @@ declare module recognizer {
       childRoute:string;
     }
 
-    export interface Result extends Array<Handler> {
+    interface Result extends Array<Handler> {
         queryParams: Params;
     }
 
-    export interface Handler {
+    interface Handler {
       handler: any;
       params: Params;
       isDynamic: boolean
@@ -32,7 +32,7 @@ declare module recognizer {
         (e: Match): void;
     }
 
-    export interface Match {
+    interface Match {
         (path: string): Target;
         (path: string, e: Callback): Target;
     }
