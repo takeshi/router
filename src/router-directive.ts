@@ -359,10 +359,11 @@ function setupRoutersStepFactory() {
 function initLocalsStepFactory() {
   return function initLocals(instruction: Instruction) {
     return instruction.router.traverseInstruction(instruction, function(instruction: Instruction) {
-      return instruction.locals = {
+      instruction.locals = {
         $router: instruction.router,
         $routeParams: (instruction.params || <recognizer.Params>{})
       };
+      return
     });
   }
 }

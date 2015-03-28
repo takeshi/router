@@ -521,10 +521,11 @@ function setupRoutersStepFactory() {
 function initLocalsStepFactory() {
     return function initLocals(instruction) {
         return instruction.router.traverseInstruction(instruction, function (instruction) {
-            return instruction.locals = {
+            instruction.locals = {
                 $router: instruction.router,
                 $routeParams: (instruction.params || {})
             };
+            return;
         });
     };
 }

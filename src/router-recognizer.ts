@@ -13,7 +13,7 @@ declare class RouteRecognizer {
 declare module recognizer {
   interface Params {
     [key: string]: string;
-    childRoute: string;
+    childRoute?: string;
   }
 
   interface Result extends Array<Handler> {
