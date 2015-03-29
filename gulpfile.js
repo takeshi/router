@@ -41,11 +41,11 @@ gulp.task('angularify', ['transpile'], function() {
   //     }))
 
   var generated = gulp.src(PATH.TS)
-      .pipe(typescript())
+      .pipe(typescript({}))
       .pipe(modulate({}))
-  var libs = gulp.src(['./node_modules/route-recognizer/dist/route-recognizer.js']);
-
-  return gulpMerge(directive, generated,libs)
+  // var libs = gulp.src(['./node_modules/route-recognizer/dist/route-recognizer.js']);
+    var libs =[];
+  return gulpMerge(generated,directive,libs)
       .pipe(concat('router.es5.js'))
       .pipe(ngAnnotate())
       .pipe(gulp.dest(BUILD_DIR));
